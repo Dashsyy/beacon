@@ -1,21 +1,21 @@
 {
-  "name": "git-gui-local",
+  "name": "beacon",
   "version": "1.0.3",
-  "description": "Quick launcher: save project folders, open them in VS Code with one click",
+  "description": "Save your project folders and open them in VS Code with one click",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --mac"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "electron": "^32.0.0",
     "electron-builder": "^25.0.0"
   },
   "build": {
-    "appId": "local.gitgui.launcher",
-    "productName": "Project Launcher",
+    "appId": "com.beacon.launcher",
+    "productName": "Beacon",
     "mac": {
       "category": "public.app-category.developer-tools",
       "target": "dmg"
