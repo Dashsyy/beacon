@@ -13,7 +13,7 @@ function createWindow() {
     height: 600,
     minWidth: 360,
     minHeight: 400,
-    title: 'Project Launcher',
+    title: 'Beacon',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
