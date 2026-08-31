@@ -1,6 +1,6 @@
 {
   "name": "git-gui-local",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Quick launcher: save project folders, open them in VS Code with one click",
   "main": "src/main.js",
   "scripts": {
