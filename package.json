@@ -1,6 +1,6 @@
 {
   "name": "beacon",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Save your project folders and open them in VS Code with one click",
   "main": "src/main.js",
   "scripts": {
