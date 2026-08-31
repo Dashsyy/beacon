@@ -2,10 +2,12 @@
   "name": "beacon",
   "version": "1.0.5",
   "description": "Save your project folders and open them in VS Code with one click",
-  "main": "src/main.js",
+  "main": "src/main/index.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --mac"
+    "dist": "electron-builder --mac",
+    "clean": "rm -rf dist",
+    "test": "node --test"
   },
   "author": "",
   "license": "MIT",
