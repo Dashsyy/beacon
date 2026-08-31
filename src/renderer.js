@@ -37,7 +37,7 @@ function createProjectRow(project) {
   li.className = 'item';
 
   const favoriteBtn = document.createElement('button');
-  favoriteBtn.className = 'item-favorite' + (project.favorite ? ' active' : '');
+  favoriteBtn.className = 'icon-btn' + (project.favorite ? ' favorite-active' : '');
   favoriteBtn.textContent = project.favorite ? '★' : '☆';
   favoriteBtn.title = project.favorite ? 'Unfavorite' : 'Favorite';
   favoriteBtn.addEventListener('click', async (e) => {
@@ -73,7 +73,7 @@ function createProjectRow(project) {
   }
 
   const groupsBtn = document.createElement('button');
-  groupsBtn.className = 'item-reveal';
+  groupsBtn.className = 'icon-btn';
   groupsBtn.textContent = '🏷️';
   groupsBtn.title = 'Edit groups';
   groupsBtn.addEventListener('click', async (e) => {
@@ -86,7 +86,7 @@ function createProjectRow(project) {
   });
 
   const revealBtn = document.createElement('button');
-  revealBtn.className = 'item-reveal';
+  revealBtn.className = 'icon-btn';
   revealBtn.textContent = '📂';
   revealBtn.title = 'Reveal in Finder';
   revealBtn.addEventListener('click', (e) => {
@@ -95,7 +95,7 @@ function createProjectRow(project) {
   });
 
   const removeBtn = document.createElement('button');
-  removeBtn.className = 'item-remove';
+  removeBtn.className = 'icon-btn danger';
   removeBtn.textContent = '✕';
   removeBtn.title = 'Remove from list';
   removeBtn.addEventListener('click', async (e) => {
@@ -289,7 +289,7 @@ function renderCandidates(candidates) {
     info.appendChild(pathEl);
 
     const revealBtn = document.createElement('button');
-    revealBtn.className = 'item-reveal';
+    revealBtn.className = 'icon-btn';
     revealBtn.textContent = '📂';
     revealBtn.title = 'Reveal in Finder';
     revealBtn.addEventListener('click', (e) => {
