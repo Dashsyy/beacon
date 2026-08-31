@@ -7,7 +7,10 @@
 </head>
 <body>
   <div class="topbar">
-    <input id="search" type="text" placeholder="Filter projects…" autofocus />
+    <div class="search-wrapper">
+      <input id="search" type="text" placeholder="Filter projects…" autofocus />
+      <button id="browseBtn" class="icon-btn search-browse-btn" title="Browse for a folder to add">📁</button>
+    </div>
     <button id="scanBtn" class="secondary" title="Find projects inside a chosen folder">Scan</button>
     <button id="addBtn" title="Add project folder">+ Add</button>
   </div>

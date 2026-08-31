@@ -1,4 +1,5 @@
 const searchEl = document.getElementById('search');
+const browseBtn = document.getElementById('browseBtn');
 const addBtn = document.getElementById('addBtn');
 const scanBtn = document.getElementById('scanBtn');
 const listEl = document.getElementById('list');
@@ -199,11 +200,14 @@ tabButtons.forEach((btn) => {
   });
 });
 
-addBtn.addEventListener('click', async () => {
+async function addProjectViaPicker() {
   const result = await window.api.add();
   projects = result.projects;
   render();
-});
+}
+
+addBtn.addEventListener('click', addProjectViaPicker);
+browseBtn.addEventListener('click', addProjectViaPicker);
 
 scanBtn.addEventListener('click', async () => {
   scanBtn.disabled = true;
