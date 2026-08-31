@@ -8,11 +8,27 @@
 <body>
   <div class="topbar">
     <input id="search" type="text" placeholder="Filter projects…" autofocus />
-    <button id="scanBtn" class="secondary" title="Add every subfolder of a chosen folder">Scan</button>
+    <button id="scanBtn" class="secondary" title="Find projects inside a chosen folder">Scan</button>
     <button id="addBtn" title="Add project folder">+ Add</button>
   </div>
   <ul id="list"></ul>
   <p id="empty" class="empty" hidden>No projects yet. Click "+ Add" to pick a folder.</p>
+
+  <div id="scanModal" class="modal-overlay" hidden>
+    <div class="modal">
+      <h2 id="scanModalTitle">Found projects</h2>
+      <label class="select-all-row">
+        <input type="checkbox" id="selectAllCheckbox" checked />
+        Select all
+      </label>
+      <ul id="scanCandidateList" class="candidate-list"></ul>
+      <div class="modal-actions">
+        <button id="scanCancelBtn" class="secondary">Cancel</button>
+        <button id="scanConfirmBtn">Add Selected</button>
+      </div>
+    </div>
+  </div>
+
   <script src="renderer.js"></script>
 </body>
 </html>

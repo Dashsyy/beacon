@@ -4,6 +4,13 @@ const scanBtn = document.getElementById('scanBtn');
 const listEl = document.getElementById('list');
 const emptyEl = document.getElementById('empty');
 
+const scanModal = document.getElementById('scanModal');
+const scanModalTitle = document.getElementById('scanModalTitle');
+const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+const scanCandidateList = document.getElementById('scanCandidateList');
+const scanCancelBtn = document.getElementById('scanCancelBtn');
+const scanConfirmBtn = document.getElementById('scanConfirmBtn');
+
 let projects = [];
 
 function currentFilter() {
@@ -78,15 +85,102 @@ scanBtn.addEventListener('click', async () => {
   scanBtn.disabled = true;
   try {
     const result = await window.api.scan();
-    projects = result.projects;
-    render();
-    if (result.scanned) {
-      alert(`Found ${result.foundCount} project(s), added ${result.addedCount} new.`);
+    if (!result.scanned) return;
+    if (result.candidates.length === 0) {
+      alert(
+        result.alreadyAddedCount > 0
+          ? `Found ${result.alreadyAddedCount} project(s) — all already in your list.`
+          : 'No projects found in that folder.'
+      );
+      return;
     }
+    openScanModal(result);
   } finally {
     scanBtn.textContent = originalLabel;
     scanBtn.disabled = false;
   }
+});
+
+function candidateCheckboxes() {
+  return Array.from(scanCandidateList.querySelectorAll('input[type="checkbox"]'));
+}
+
+function updateSelectAllState() {
+  const boxes = candidateCheckboxes();
+  const allChecked = boxes.every((b) => b.checked);
+  const noneChecked = boxes.every((b) => !b.checked);
+  selectAllCheckbox.checked = allChecked;
+  selectAllCheckbox.indeterminate = !allChecked && !noneChecked;
+}
+
+function renderCandidates(candidates) {
+  scanCandidateList.innerHTML = '';
+  for (const candidate of candidates) {
+    const li = document.createElement('li');
+
+    const label = document.createElement('label');
+    label.className = 'candidate-item';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = true;
+    checkbox.dataset.path = candidate.path;
+    checkbox.addEventListener('change', updateSelectAllState);
+
+    const info = document.createElement('div');
+    info.className = 'candidate-info';
+
+    const name = document.createElement('div');
+    name.className = 'candidate-name';
+    name.textContent = candidate.name;
+
+    const pathEl = document.createElement('div');
+    pathEl.className = 'candidate-path';
+    pathEl.textContent = candidate.path;
+
+    info.appendChild(name);
+    info.appendChild(pathEl);
+    label.appendChild(checkbox);
+    label.appendChild(info);
+    li.appendChild(label);
+    scanCandidateList.appendChild(li);
+  }
+}
+
+function openScanModal(result) {
+  scanModalTitle.textContent =
+    result.alreadyAddedCount > 0
+      ? `Found ${result.candidates.length} new project(s) (${result.alreadyAddedCount} already added)`
+      : `Found ${result.candidates.length} project(s)`;
+  renderCandidates(result.candidates);
+  selectAllCheckbox.checked = true;
+  selectAllCheckbox.indeterminate = false;
+  scanModal.hidden = false;
+}
+
+function closeScanModal() {
+  scanModal.hidden = true;
+  scanCandidateList.innerHTML = '';
+}
+
+selectAllCheckbox.addEventListener('change', () => {
+  candidateCheckboxes().forEach((b) => {
+    b.checked = selectAllCheckbox.checked;
+  });
+  selectAllCheckbox.indeterminate = false;
+});
+
+scanCancelBtn.addEventListener('click', closeScanModal);
+
+scanConfirmBtn.addEventListener('click', async () => {
+  const selectedPaths = candidateCheckboxes()
+    .filter((b) => b.checked)
+    .map((b) => b.dataset.path);
+  closeScanModal();
+  if (selectedPaths.length === 0) return;
+  const result = await window.api.addPaths(selectedPaths);
+  projects = result.projects;
+  render();
 });
 
 searchEl.addEventListener('input', render);

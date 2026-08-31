@@ -56,13 +56,25 @@ ipcMain.handle('projects:scan', async () => {
     title: 'Choose a folder to scan for projects',
   });
   if (result.canceled || result.filePaths.length === 0) {
-    return { projects: store.list(), addedCount: 0, scanned: false };
+    return { scanned: false, candidates: [], alreadyAddedCount: 0 };
   }
 
   const root = result.filePaths[0];
   const foundPaths = findProjectDirs(root);
-  const { projects, addedCount } = store.addMany(foundPaths);
-  return { projects, addedCount, foundCount: foundPaths.length, scanned: true };
+  const existingPaths = new Set(store.list().map((p) => p.path));
+  const candidates = foundPaths
+    .filter((p) => !existingPaths.has(p))
+    .map((p) => ({ path: p, name: path.basename(p) }));
+
+  return {
+    scanned: true,
+    candidates,
+    alreadyAddedCount: foundPaths.length - candidates.length,
+  };
+});
+
+ipcMain.handle('projects:addPaths', (_event, projectPaths) => {
+  return store.addMany(projectPaths);
 });
 
 ipcMain.handle('projects:open', (_event, projectPath) => {

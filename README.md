@@ -31,4 +31,4 @@ Produces a `.dmg` in `dist/` you can drag into Applications and pin to the Dock.
 
 ## Data
 
-Saved projects are stored as JSON in Electron's app-data directory (`~/Library/Application Support/Project Launcher/projects.json`), not in this repo.
+Saved projects are stored as JSON in Electron's app-data directory (`~/Library/Application Support/git-gui-local/projects.json`), not in this repo.
