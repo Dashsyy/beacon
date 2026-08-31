@@ -7,7 +7,8 @@ const STORE_PATH = path.join(app.getPath('userData'), 'projects.json');
 function readAll() {
   try {
     const raw = fs.readFileSync(STORE_PATH, 'utf-8');
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return parsed.map((p) => ({ favorite: false, groups: [], ...p }));
   } catch {
     return [];
   }
@@ -33,7 +34,7 @@ function addMany(projectPaths) {
   for (const projectPath of projectPaths) {
     if (existingPaths.has(projectPath)) continue;
     existingPaths.add(projectPath);
-    projects.push({ name: path.basename(projectPath), path: projectPath });
+    projects.push({ name: path.basename(projectPath), path: projectPath, favorite: false, groups: [] });
     addedCount++;
   }
   if (addedCount > 0) writeAll(projects);
@@ -46,4 +47,24 @@ function remove(projectPath) {
   return list();
 }
 
-module.exports = { list, add, addMany, remove };
+function toggleFavorite(projectPath) {
+  const projects = readAll();
+  const project = projects.find((p) => p.path === projectPath);
+  if (project) {
+    project.favorite = !project.favorite;
+    writeAll(projects);
+  }
+  return list();
+}
+
+function setGroups(projectPath, groups) {
+  const projects = readAll();
+  const project = projects.find((p) => p.path === projectPath);
+  if (project) {
+    project.groups = groups;
+    writeAll(projects);
+  }
+  return list();
+}
+
+module.exports = { list, add, addMany, remove, toggleFavorite, setGroups };

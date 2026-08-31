@@ -6,6 +6,8 @@ contextBridge.exposeInMainWorld('api', {
   scan: () => ipcRenderer.invoke('projects:scan'),
   addPaths: (paths) => ipcRenderer.invoke('projects:addPaths', paths),
   remove: (projectPath) => ipcRenderer.invoke('projects:remove', projectPath),
+  toggleFavorite: (projectPath) => ipcRenderer.invoke('projects:toggleFavorite', projectPath),
+  setGroups: (projectPath, groups) => ipcRenderer.invoke('projects:setGroups', projectPath, groups),
   open: (projectPath) => ipcRenderer.invoke('projects:open', projectPath),
   reveal: (projectPath) => ipcRenderer.invoke('projects:reveal', projectPath),
   onScanProgress: (callback) => {

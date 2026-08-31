@@ -3,6 +3,7 @@ const addBtn = document.getElementById('addBtn');
 const scanBtn = document.getElementById('scanBtn');
 const listEl = document.getElementById('list');
 const emptyEl = document.getElementById('empty');
+const tabButtons = Array.from(document.querySelectorAll('.tab-btn'));
 
 const scanModal = document.getElementById('scanModal');
 const scanProgressView = document.getElementById('scanProgressView');
@@ -16,12 +17,13 @@ const scanCancelBtn = document.getElementById('scanCancelBtn');
 const scanConfirmBtn = document.getElementById('scanConfirmBtn');
 
 let projects = [];
+let activeTab = 'all';
 
 function currentFilter() {
   return searchEl.value.trim().toLowerCase();
 }
 
-function visibleProjects() {
+function searchFilteredProjects() {
   const q = currentFilter();
   if (!q) return projects;
   return projects.filter(
@@ -29,59 +31,156 @@ function visibleProjects() {
   );
 }
 
+function createProjectRow(project) {
+  const li = document.createElement('li');
+  li.className = 'item';
+
+  const favoriteBtn = document.createElement('button');
+  favoriteBtn.className = 'item-favorite' + (project.favorite ? ' active' : '');
+  favoriteBtn.textContent = project.favorite ? '★' : '☆';
+  favoriteBtn.title = project.favorite ? 'Unfavorite' : 'Favorite';
+  favoriteBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    projects = await window.api.toggleFavorite(project.path);
+    render();
+  });
+
+  const info = document.createElement('div');
+  info.className = 'item-info';
+
+  const name = document.createElement('div');
+  name.className = 'item-name';
+  name.textContent = project.name;
+
+  const pathEl = document.createElement('div');
+  pathEl.className = 'item-path';
+  pathEl.textContent = project.path;
+
+  info.appendChild(name);
+  info.appendChild(pathEl);
+
+  if (project.groups.length > 0) {
+    const chips = document.createElement('div');
+    chips.className = 'item-groups';
+    for (const group of project.groups) {
+      const chip = document.createElement('span');
+      chip.className = 'group-chip';
+      chip.textContent = group;
+      chips.appendChild(chip);
+    }
+    info.appendChild(chips);
+  }
+
+  const groupsBtn = document.createElement('button');
+  groupsBtn.className = 'item-reveal';
+  groupsBtn.textContent = '🏷️';
+  groupsBtn.title = 'Edit groups';
+  groupsBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const input = prompt('Groups (comma-separated):', project.groups.join(', '));
+    if (input === null) return;
+    const groups = [...new Set(input.split(',').map((g) => g.trim()).filter(Boolean))];
+    projects = await window.api.setGroups(project.path, groups);
+    render();
+  });
+
+  const revealBtn = document.createElement('button');
+  revealBtn.className = 'item-reveal';
+  revealBtn.textContent = '📂';
+  revealBtn.title = 'Reveal in Finder';
+  revealBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.api.reveal(project.path);
+  });
+
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'item-remove';
+  removeBtn.textContent = '✕';
+  removeBtn.title = 'Remove from list';
+  removeBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    projects = await window.api.remove(project.path);
+    render();
+  });
+
+  const actions = document.createElement('div');
+  actions.className = 'item-actions';
+  actions.appendChild(groupsBtn);
+  actions.appendChild(revealBtn);
+  actions.appendChild(removeBtn);
+
+  li.appendChild(favoriteBtn);
+  li.appendChild(info);
+  li.appendChild(actions);
+  li.addEventListener('click', () => openProject(project.path));
+
+  return li;
+}
+
+function createGroupHeader(label) {
+  const li = document.createElement('li');
+  li.className = 'group-header';
+  li.textContent = label;
+  return li;
+}
+
+function createEmptyTabMessage(text) {
+  const li = document.createElement('li');
+  li.className = 'tab-empty-msg';
+  li.textContent = text;
+  return li;
+}
+
 function render() {
-  const items = visibleProjects();
   listEl.innerHTML = '';
   emptyEl.hidden = projects.length !== 0;
+  if (projects.length === 0) return;
 
-  for (const project of items) {
-    const li = document.createElement('li');
-    li.className = 'item';
+  const searched = searchFilteredProjects();
 
-    const info = document.createElement('div');
-    info.className = 'item-info';
-
-    const name = document.createElement('div');
-    name.className = 'item-name';
-    name.textContent = project.name;
-
-    const pathEl = document.createElement('div');
-    pathEl.className = 'item-path';
-    pathEl.textContent = project.path;
-
-    info.appendChild(name);
-    info.appendChild(pathEl);
-
-    const revealBtn = document.createElement('button');
-    revealBtn.className = 'item-reveal';
-    revealBtn.textContent = '📂';
-    revealBtn.title = 'Reveal in Finder';
-    revealBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      window.api.reveal(project.path);
-    });
-
-    const removeBtn = document.createElement('button');
-    removeBtn.className = 'item-remove';
-    removeBtn.textContent = '✕';
-    removeBtn.title = 'Remove from list';
-    removeBtn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      projects = await window.api.remove(project.path);
-      render();
-    });
-
-    const actions = document.createElement('div');
-    actions.className = 'item-actions';
-    actions.appendChild(revealBtn);
-    actions.appendChild(removeBtn);
-
-    li.appendChild(info);
-    li.appendChild(actions);
-    li.addEventListener('click', () => openProject(project.path));
-
-    listEl.appendChild(li);
+  if (activeTab === 'favorites') {
+    const favorites = searched.filter((p) => p.favorite);
+    if (favorites.length === 0) {
+      listEl.appendChild(createEmptyTabMessage('No favorites yet — click the star on a project.'));
+      return;
+    }
+    favorites.forEach((p) => listEl.appendChild(createProjectRow(p)));
+    return;
   }
+
+  if (activeTab === 'groups') {
+    const groupNames = [...new Set(searched.flatMap((p) => p.groups))].sort((a, b) =>
+      a.localeCompare(b)
+    );
+    const ungrouped = searched.filter((p) => p.groups.length === 0);
+
+    if (groupNames.length === 0 && ungrouped.length === 0) {
+      listEl.appendChild(createEmptyTabMessage('No groups yet — click 🏷️ on a project to tag it.'));
+      return;
+    }
+
+    for (const groupName of groupNames) {
+      listEl.appendChild(createGroupHeader(groupName));
+      searched
+        .filter((p) => p.groups.includes(groupName))
+        .forEach((p) => listEl.appendChild(createProjectRow(p)));
+    }
+
+    if (ungrouped.length > 0) {
+      listEl.appendChild(createGroupHeader('Ungrouped'));
+      ungrouped.forEach((p) => listEl.appendChild(createProjectRow(p)));
+    }
+    return;
+  }
+
+  searched.forEach((p) => listEl.appendChild(createProjectRow(p)));
+}
+
+function visibleProjects() {
+  if (activeTab === 'favorites') {
+    return searchFilteredProjects().filter((p) => p.favorite);
+  }
+  return searchFilteredProjects();
 }
 
 async function openProject(projectPath) {
@@ -90,6 +189,14 @@ async function openProject(projectPath) {
     alert(result.error);
   }
 }
+
+tabButtons.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    activeTab = btn.dataset.tab;
+    tabButtons.forEach((b) => b.classList.toggle('active', b === btn));
+    render();
+  });
+});
 
 addBtn.addEventListener('click', async () => {
   const result = await window.api.add();

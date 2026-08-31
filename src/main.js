@@ -50,6 +50,14 @@ ipcMain.handle('projects:remove', (_event, projectPath) => {
   return store.remove(projectPath);
 });
 
+ipcMain.handle('projects:toggleFavorite', (_event, projectPath) => {
+  return store.toggleFavorite(projectPath);
+});
+
+ipcMain.handle('projects:setGroups', (_event, projectPath, groups) => {
+  return store.setGroups(projectPath, groups);
+});
+
 ipcMain.handle('projects:scan', async () => {
   const result = await dialog.showOpenDialog(win, {
     properties: ['openDirectory'],
