@@ -14,6 +14,7 @@ function createWindow() {
     minWidth: 360,
     minHeight: 400,
     title: 'Beacon',
+    icon: path.join(__dirname, '..', '..', 'build', 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, '..', 'preload.js'),
       contextIsolation: true,
@@ -24,6 +25,12 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  // In packaged builds macOS reads the Dock icon from the app bundle's
+  // Info.plist automatically; in `npm start` there's no bundle, so the
+  // Dock would otherwise show Electron's default icon.
+  if (process.platform === 'darwin' && !app.isPackaged) {
+    app.dock.setIcon(path.join(__dirname, '..', '..', 'build', 'icon.png'));
+  }
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
