@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Project Launcher</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="topbar">
+    <input id="search" type="text" placeholder="Filter projects…" autofocus />
+    <button id="scanBtn" class="secondary" title="Add every subfolder of a chosen folder">Scan</button>
+    <button id="addBtn" title="Add project folder">+ Add</button>
+  </div>
+  <ul id="list"></ul>
+  <p id="empty" class="empty" hidden>No projects yet. Click "+ Add" to pick a folder.</p>
+  <script src="renderer.js"></script>
+</body>
+</html>

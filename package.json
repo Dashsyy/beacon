@@ -1,0 +1,27 @@
+{
+  "name": "git-gui-local",
+  "version": "1.0.0",
+  "description": "Quick launcher: save project folders, open them in VS Code with one click",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --mac"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^32.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "local.gitgui.launcher",
+    "productName": "Project Launcher",
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": "dmg"
+    },
+    "files": [
+      "src/**/*"
+    ]
+  }
+}
