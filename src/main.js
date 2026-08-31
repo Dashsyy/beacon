@@ -1,8 +1,8 @@
 const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const { spawn } = require('child_process');
-const fs = require('fs');
 const path = require('path');
 const store = require('./store');
+const { findProjectDirs } = require('./scanner');
 
 let win;
 
@@ -60,13 +60,9 @@ ipcMain.handle('projects:scan', async () => {
   }
 
   const root = result.filePaths[0];
-  const entries = fs.readdirSync(root, { withFileTypes: true });
-  const subdirPaths = entries
-    .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.'))
-    .map((entry) => path.join(root, entry.name));
-
-  const { projects, addedCount } = store.addMany(subdirPaths);
-  return { projects, addedCount, scanned: true };
+  const foundPaths = findProjectDirs(root);
+  const { projects, addedCount } = store.addMany(foundPaths);
+  return { projects, addedCount, foundCount: foundPaths.length, scanned: true };
 });
 
 ipcMain.handle('projects:open', (_event, projectPath) => {

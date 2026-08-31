@@ -81,7 +81,7 @@ scanBtn.addEventListener('click', async () => {
     projects = result.projects;
     render();
     if (result.scanned) {
-      alert(`Added ${result.addedCount} new project(s).`);
+      alert(`Found ${result.foundCount} project(s), added ${result.addedCount} new.`);
     }
   } finally {
     scanBtn.textContent = originalLabel;
