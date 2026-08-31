@@ -5,6 +5,10 @@ const listEl = document.getElementById('list');
 const emptyEl = document.getElementById('empty');
 
 const scanModal = document.getElementById('scanModal');
+const scanProgressView = document.getElementById('scanProgressView');
+const scanProgressDir = document.getElementById('scanProgressDir');
+const scanProgressCount = document.getElementById('scanProgressCount');
+const scanResultsView = document.getElementById('scanResultsView');
 const scanModalTitle = document.getElementById('scanModalTitle');
 const selectAllCheckbox = document.getElementById('selectAllCheckbox');
 const scanCandidateList = document.getElementById('scanCandidateList');
@@ -48,6 +52,15 @@ function render() {
     info.appendChild(name);
     info.appendChild(pathEl);
 
+    const revealBtn = document.createElement('button');
+    revealBtn.className = 'item-reveal';
+    revealBtn.textContent = '📂';
+    revealBtn.title = 'Reveal in Finder';
+    revealBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.api.reveal(project.path);
+    });
+
     const removeBtn = document.createElement('button');
     removeBtn.className = 'item-remove';
     removeBtn.textContent = '✕';
@@ -58,8 +71,13 @@ function render() {
       render();
     });
 
+    const actions = document.createElement('div');
+    actions.className = 'item-actions';
+    actions.appendChild(revealBtn);
+    actions.appendChild(removeBtn);
+
     li.appendChild(info);
-    li.appendChild(removeBtn);
+    li.appendChild(actions);
     li.addEventListener('click', () => openProject(project.path));
 
     listEl.appendChild(li);
@@ -80,13 +98,24 @@ addBtn.addEventListener('click', async () => {
 });
 
 scanBtn.addEventListener('click', async () => {
-  const originalLabel = scanBtn.textContent;
-  scanBtn.textContent = 'Scanning…';
   scanBtn.disabled = true;
+  let progressStarted = false;
+  const unsubscribe = window.api.onScanProgress((progress) => {
+    if (!progressStarted) {
+      progressStarted = true;
+      showScanProgressView();
+    }
+    scanProgressDir.textContent = progress.currentDir;
+    scanProgressCount.textContent = `Found: ${progress.foundCount}`;
+  });
   try {
     const result = await window.api.scan();
-    if (!result.scanned) return;
+    if (!result.scanned) {
+      closeScanModal();
+      return;
+    }
     if (result.candidates.length === 0) {
+      closeScanModal();
       alert(
         result.alreadyAddedCount > 0
           ? `Found ${result.alreadyAddedCount} project(s) — all already in your list.`
@@ -96,10 +125,18 @@ scanBtn.addEventListener('click', async () => {
     }
     openScanModal(result);
   } finally {
-    scanBtn.textContent = originalLabel;
+    unsubscribe();
     scanBtn.disabled = false;
   }
 });
+
+function showScanProgressView() {
+  scanProgressDir.textContent = '';
+  scanProgressCount.textContent = 'Found: 0';
+  scanProgressView.hidden = false;
+  scanResultsView.hidden = true;
+  scanModal.hidden = false;
+}
 
 function candidateCheckboxes() {
   return Array.from(scanCandidateList.querySelectorAll('input[type="checkbox"]'));
@@ -117,9 +154,7 @@ function renderCandidates(candidates) {
   scanCandidateList.innerHTML = '';
   for (const candidate of candidates) {
     const li = document.createElement('li');
-
-    const label = document.createElement('label');
-    label.className = 'candidate-item';
+    li.className = 'candidate-item';
 
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
@@ -140,9 +175,25 @@ function renderCandidates(candidates) {
 
     info.appendChild(name);
     info.appendChild(pathEl);
-    label.appendChild(checkbox);
-    label.appendChild(info);
-    li.appendChild(label);
+
+    const revealBtn = document.createElement('button');
+    revealBtn.className = 'item-reveal';
+    revealBtn.textContent = '📂';
+    revealBtn.title = 'Reveal in Finder';
+    revealBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.api.reveal(candidate.path);
+    });
+
+    li.appendChild(checkbox);
+    li.appendChild(info);
+    li.appendChild(revealBtn);
+    li.addEventListener('click', (e) => {
+      if (e.target === checkbox || e.target === revealBtn) return;
+      checkbox.checked = !checkbox.checked;
+      updateSelectAllState();
+    });
+
     scanCandidateList.appendChild(li);
   }
 }
@@ -155,6 +206,8 @@ function openScanModal(result) {
   renderCandidates(result.candidates);
   selectAllCheckbox.checked = true;
   selectAllCheckbox.indeterminate = false;
+  scanProgressView.hidden = true;
+  scanResultsView.hidden = false;
   scanModal.hidden = false;
 }
 

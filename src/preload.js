@@ -8,4 +8,9 @@ contextBridge.exposeInMainWorld('api', {
   remove: (projectPath) => ipcRenderer.invoke('projects:remove', projectPath),
   open: (projectPath) => ipcRenderer.invoke('projects:open', projectPath),
   reveal: (projectPath) => ipcRenderer.invoke('projects:reveal', projectPath),
+  onScanProgress: (callback) => {
+    const listener = (_event, data) => callback(data);
+    ipcRenderer.on('scan:progress', listener);
+    return () => ipcRenderer.removeListener('scan:progress', listener);
+  },
 });

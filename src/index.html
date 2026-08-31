@@ -16,15 +16,22 @@
 
   <div id="scanModal" class="modal-overlay" hidden>
     <div class="modal">
-      <h2 id="scanModalTitle">Found projects</h2>
-      <label class="select-all-row">
-        <input type="checkbox" id="selectAllCheckbox" checked />
-        Select all
-      </label>
-      <ul id="scanCandidateList" class="candidate-list"></ul>
-      <div class="modal-actions">
-        <button id="scanCancelBtn" class="secondary">Cancel</button>
-        <button id="scanConfirmBtn">Add Selected</button>
+      <div id="scanProgressView">
+        <h2>Scanning…</h2>
+        <p id="scanProgressDir" class="scan-progress-dir"></p>
+        <p id="scanProgressCount" class="scan-progress-count"></p>
+      </div>
+      <div id="scanResultsView" hidden>
+        <h2 id="scanModalTitle">Found projects</h2>
+        <label class="select-all-row">
+          <input type="checkbox" id="selectAllCheckbox" checked />
+          Select all
+        </label>
+        <ul id="scanCandidateList" class="candidate-list"></ul>
+        <div class="modal-actions">
+          <button id="scanCancelBtn" class="secondary">Cancel</button>
+          <button id="scanConfirmBtn">Add Selected</button>
+        </div>
       </div>
     </div>
   </div>

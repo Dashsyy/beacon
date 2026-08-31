@@ -60,7 +60,9 @@ ipcMain.handle('projects:scan', async () => {
   }
 
   const root = result.filePaths[0];
-  const foundPaths = findProjectDirs(root);
+  const foundPaths = findProjectDirs(root, (progress) => {
+    win.webContents.send('scan:progress', progress);
+  });
   const existingPaths = new Set(store.list().map((p) => p.path));
   const candidates = foundPaths
     .filter((p) => !existingPaths.has(p))

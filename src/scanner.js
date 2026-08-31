@@ -12,13 +12,14 @@ function isProject(dirPath) {
   return PROJECT_MARKERS.some((marker) => fs.existsSync(path.join(dirPath, marker)));
 }
 
-function findProjectDirs(rootPath) {
+function findProjectDirs(rootPath, onProgress) {
   if (isProject(rootPath)) return [rootPath];
 
   const results = [];
 
   function walk(currentPath, depth) {
     if (depth > MAX_DEPTH) return;
+    if (onProgress) onProgress({ currentDir: currentPath, foundCount: results.length });
 
     let entries;
     try {
@@ -34,6 +35,7 @@ function findProjectDirs(rootPath) {
       const fullPath = path.join(currentPath, entry.name);
       if (isProject(fullPath)) {
         results.push(fullPath);
+        if (onProgress) onProgress({ currentDir: fullPath, foundCount: results.length });
       } else {
         walk(fullPath, depth + 1);
       }
