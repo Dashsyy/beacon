@@ -185,10 +185,20 @@ function visibleProjects() {
   return searchFilteredProjects();
 }
 
+let isOpening = false;
+
 async function openProject(projectPath) {
-  const result = await window.api.open(projectPath);
-  if (!result.ok) {
-    alert(result.error);
+  if (isOpening) return;
+  isOpening = true;
+  listEl.classList.add('opening');
+  try {
+    const result = await window.api.open(projectPath);
+    if (!result.ok) {
+      alert(result.error);
+    }
+  } finally {
+    isOpening = false;
+    listEl.classList.remove('opening');
   }
 }
 

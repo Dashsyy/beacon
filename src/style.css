@@ -211,6 +211,12 @@ button {
   flex: 1;
 }
 
+#list.opening {
+  pointer-events: none;
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .item {
   display: flex;
   align-items: center;
