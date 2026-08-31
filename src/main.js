@@ -108,18 +108,29 @@ ipcMain.handle('projects:addPaths', (_event, projectPaths) => {
 ipcMain.handle('projects:open', (_event, projectPath) => {
   return new Promise((resolve) => {
     let settled = false;
-    const child = spawn('code', [projectPath], { detached: true, stdio: 'ignore' });
+    const userShell = process.env.SHELL || '/bin/zsh';
+    // Run through a login+interactive shell so it picks up the user's real PATH
+    // (e.g. Homebrew's /usr/local/bin) — Electron apps launched via Finder/Dock
+    // otherwise only get macOS's minimal default PATH, not the shell's PATH.
+    const child = spawn(userShell, ['-ilc', 'code "$1"', '_', projectPath], {
+      detached: true,
+      stdio: 'ignore',
+    });
     child.on('error', () => {
       if (settled) return;
       settled = true;
       resolve({ ok: false, error: `Could not find the "code" command. Open VS Code and run "Shell Command: Install 'code' command in PATH" from the Command Palette.` });
     });
-    child.unref();
-    setImmediate(() => {
+    child.on('exit', (code) => {
       if (settled) return;
       settled = true;
-      resolve({ ok: true });
+      if (code === 0) {
+        resolve({ ok: true });
+      } else {
+        resolve({ ok: false, error: `Could not find the "code" command. Open VS Code and run "Shell Command: Install 'code' command in PATH" from the Command Palette.` });
+      }
     });
+    child.unref();
   });
 });
 
