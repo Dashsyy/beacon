@@ -15,6 +15,7 @@ const selectAllCheckbox = document.getElementById('selectAllCheckbox');
 const scanCandidateList = document.getElementById('scanCandidateList');
 const scanCancelBtn = document.getElementById('scanCancelBtn');
 const scanConfirmBtn = document.getElementById('scanConfirmBtn');
+const scanAbortBtn = document.getElementById('scanAbortBtn');
 
 let projects = [];
 let activeTab = 'all';
@@ -217,6 +218,10 @@ scanBtn.addEventListener('click', async () => {
   });
   try {
     const result = await window.api.scan();
+    if (result.cancelled) {
+      closeScanModal();
+      return;
+    }
     if (!result.scanned) {
       closeScanModal();
       return;
@@ -331,6 +336,10 @@ selectAllCheckbox.addEventListener('change', () => {
 });
 
 scanCancelBtn.addEventListener('click', closeScanModal);
+
+scanAbortBtn.addEventListener('click', () => {
+  window.api.cancelScan();
+});
 
 scanConfirmBtn.addEventListener('click', async () => {
   const selectedPaths = candidateCheckboxes()

@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('api', {
   list: () => ipcRenderer.invoke('projects:list'),
   add: () => ipcRenderer.invoke('projects:add'),
   scan: () => ipcRenderer.invoke('projects:scan'),
+  cancelScan: () => ipcRenderer.invoke('projects:cancelScan'),
   addPaths: (paths) => ipcRenderer.invoke('projects:addPaths', paths),
   remove: (projectPath) => ipcRenderer.invoke('projects:remove', projectPath),
   toggleFavorite: (projectPath) => ipcRenderer.invoke('projects:toggleFavorite', projectPath),

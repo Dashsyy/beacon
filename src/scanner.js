@@ -12,14 +12,23 @@ function isProject(dirPath) {
   return PROJECT_MARKERS.some((marker) => fs.existsSync(path.join(dirPath, marker)));
 }
 
-function findProjectDirs(rootPath, onProgress) {
+function yieldToEventLoop() {
+  return new Promise((resolve) => setImmediate(resolve));
+}
+
+class ScanCancelledError extends Error {}
+
+async function findProjectDirs(rootPath, { onProgress, isCancelled } = {}) {
   if (isProject(rootPath)) return [rootPath];
 
   const results = [];
 
-  function walk(currentPath, depth) {
+  async function walk(currentPath, depth) {
+    if (isCancelled?.()) throw new ScanCancelledError();
     if (depth > MAX_DEPTH) return;
-    if (onProgress) onProgress({ currentDir: currentPath, foundCount: results.length });
+
+    onProgress?.({ currentDir: currentPath, foundCount: results.length });
+    await yieldToEventLoop();
 
     let entries;
     try {
@@ -29,21 +38,22 @@ function findProjectDirs(rootPath, onProgress) {
     }
 
     for (const entry of entries) {
+      if (isCancelled?.()) throw new ScanCancelledError();
       if (!entry.isDirectory() || entry.isSymbolicLink()) continue;
       if (entry.name.startsWith('.') || SKIP_DIR_NAMES.has(entry.name)) continue;
 
       const fullPath = path.join(currentPath, entry.name);
       if (isProject(fullPath)) {
         results.push(fullPath);
-        if (onProgress) onProgress({ currentDir: fullPath, foundCount: results.length });
+        onProgress?.({ currentDir: fullPath, foundCount: results.length });
       } else {
-        walk(fullPath, depth + 1);
+        await walk(fullPath, depth + 1);
       }
     }
   }
 
-  walk(rootPath, 0);
+  await walk(rootPath, 0);
   return results;
 }
 
-module.exports = { findProjectDirs };
+module.exports = { findProjectDirs, ScanCancelledError };

@@ -2,9 +2,10 @@ const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 const store = require('./store');
-const { findProjectDirs } = require('./scanner');
+const { findProjectDirs, ScanCancelledError } = require('./scanner');
 
 let win;
+let scanCancelRequested = false;
 
 function createWindow() {
   win = new BrowserWindow({
@@ -64,13 +65,25 @@ ipcMain.handle('projects:scan', async () => {
     title: 'Choose a folder to scan for projects',
   });
   if (result.canceled || result.filePaths.length === 0) {
-    return { scanned: false, candidates: [], alreadyAddedCount: 0 };
+    return { scanned: false, cancelled: false, candidates: [], alreadyAddedCount: 0 };
   }
 
   const root = result.filePaths[0];
-  const foundPaths = findProjectDirs(root, (progress) => {
-    win.webContents.send('scan:progress', progress);
-  });
+  scanCancelRequested = false;
+
+  let foundPaths;
+  try {
+    foundPaths = await findProjectDirs(root, {
+      onProgress: (progress) => win.webContents.send('scan:progress', progress),
+      isCancelled: () => scanCancelRequested,
+    });
+  } catch (err) {
+    if (err instanceof ScanCancelledError) {
+      return { scanned: false, cancelled: true, candidates: [], alreadyAddedCount: 0 };
+    }
+    throw err;
+  }
+
   const existingPaths = new Set(store.list().map((p) => p.path));
   const candidates = foundPaths
     .filter((p) => !existingPaths.has(p))
@@ -78,9 +91,14 @@ ipcMain.handle('projects:scan', async () => {
 
   return {
     scanned: true,
+    cancelled: false,
     candidates,
     alreadyAddedCount: foundPaths.length - candidates.length,
   };
+});
+
+ipcMain.handle('projects:cancelScan', () => {
+  scanCancelRequested = true;
 });
 
 ipcMain.handle('projects:addPaths', (_event, projectPaths) => {
